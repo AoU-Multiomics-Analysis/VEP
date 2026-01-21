@@ -15,7 +15,6 @@ workflow VepWithLofteeAndDbNSFP {
         # Reference files
         File hg38_fasta
         File hg38_fasta_fai
-        File vep_cache_tarball
         
         # LOFTEE plugin files
         File human_ancestor_fa
@@ -31,7 +30,6 @@ workflow VepWithLofteeAndDbNSFP {
         
         # VEP options
         String vep_assembly = "GRCh38"
-        Int vep_version = 110
         Array[String] dbnsfp_fields = []
         
         String cohort_prefix
@@ -230,6 +228,7 @@ task vepAnnotate {
     String vep_annotated_vcf_name = "~{prefix}.vep.loftee.dbnsfp.vcf.gz"
 
     Float input_size = size(vcf_file, "GB")
+    Float ref_size = size([top_level_fa, human_ancestor_fa, gerp_conservation_scores, dbnsfp_database], "GB")
     Float base_disk_gb = 10.0
     Float base_mem_gb = 2.0
     Float input_mem_scale = 3.0
@@ -237,7 +236,7 @@ task vepAnnotate {
     
     RuntimeAttr runtime_default = object {
         mem_gb: base_mem_gb + input_size * input_mem_scale,
-        disk_gb: ceil(base_disk_gb + input_size * input_disk_scale),
+        disk_gb: ceil(base_disk_gb + input_size * input_disk_scale + ref_size * 2.0),
         cpu_cores: 1,
         preemptible_tries: 3,
         max_retries: 1,

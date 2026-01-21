@@ -38,7 +38,6 @@ This pipeline combines:
 ### Reference Files
 - `hg38_fasta`: Human reference genome (GRCh38) FASTA file
 - `hg38_fasta_fai`: Index for the reference FASTA
-- `vep_cache_tarball`: VEP cache tarball (not currently used in annotation task, but available for future use)
 - `top_level_fa`: Top-level FASTA file for VEP
 
 ### LOFTEE Plugin Files
@@ -54,7 +53,6 @@ This pipeline combines:
 ### Other Parameters
 - `cohort_prefix`: Prefix for output files
 - `vep_assembly`: Genome assembly version (default: "GRCh38")
-- `vep_version`: VEP version (default: 110)
 
 ## Example Input JSON
 
@@ -66,7 +64,6 @@ This pipeline combines:
   "VepWithLofteeAndDbNSFP.sv_base_mini_docker": "us.gcr.io/broad-dsde-methods/gatk-sv/sv-base-mini:latest",
   "VepWithLofteeAndDbNSFP.hg38_fasta": "gs://my-bucket/references/Homo_sapiens_assembly38.fasta",
   "VepWithLofteeAndDbNSFP.hg38_fasta_fai": "gs://my-bucket/references/Homo_sapiens_assembly38.fasta.fai",
-  "VepWithLofteeAndDbNSFP.vep_cache_tarball": "gs://my-bucket/vep_cache/homo_sapiens_vep_110_GRCh38.tar.gz",
   "VepWithLofteeAndDbNSFP.top_level_fa": "gs://my-bucket/references/Homo_sapiens.GRCh38.dna.toplevel.fa.gz",
   "VepWithLofteeAndDbNSFP.human_ancestor_fa": "gs://my-bucket/loftee/human_ancestor.fa.gz",
   "VepWithLofteeAndDbNSFP.human_ancestor_fa_fai": "gs://my-bucket/loftee/human_ancestor.fa.gz.fai",
@@ -74,7 +71,8 @@ This pipeline combines:
   "VepWithLofteeAndDbNSFP.dbnsfp_database": "gs://my-bucket/dbnsfp/dbNSFP4.3a_grch38.gz",
   "VepWithLofteeAndDbNSFP.dbnsfp_database_tbi": "gs://my-bucket/dbnsfp/dbNSFP4.3a_grch38.gz.tbi",
   "VepWithLofteeAndDbNSFP.dbnsfp_fields": ["SIFT_score", "SIFT_pred", "Polyphen2_HDIV_score", "Polyphen2_HDIV_pred", "MutationTaster_score", "MutationTaster_pred"],
-  "VepWithLofteeAndDbNSFP.cohort_prefix": "my_cohort"
+  "VepWithLofteeAndDbNSFP.cohort_prefix": "my_cohort",
+  "VepWithLofteeAndDbNSFP.vep_assembly": "GRCh38"
 }
 ```
 

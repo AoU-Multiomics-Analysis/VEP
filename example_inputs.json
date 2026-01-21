@@ -9,7 +9,6 @@
   "VepWithLofteeAndDbNSFP.sv_base_mini_docker": "us.gcr.io/broad-dsde-methods/gatk-sv/sv-base-mini:latest",
   "VepWithLofteeAndDbNSFP.hg38_fasta": "gs://my-bucket/references/Homo_sapiens_assembly38.fasta",
   "VepWithLofteeAndDbNSFP.hg38_fasta_fai": "gs://my-bucket/references/Homo_sapiens_assembly38.fasta.fai",
-  "VepWithLofteeAndDbNSFP.vep_cache_tarball": "gs://my-bucket/vep_cache/homo_sapiens_vep_110_GRCh38.tar.gz",
   "VepWithLofteeAndDbNSFP.top_level_fa": "gs://my-bucket/references/Homo_sapiens.GRCh38.dna.toplevel.fa.gz",
   "VepWithLofteeAndDbNSFP.human_ancestor_fa": "gs://my-bucket/loftee/human_ancestor.fa.gz",
   "VepWithLofteeAndDbNSFP.human_ancestor_fa_fai": "gs://my-bucket/loftee/human_ancestor.fa.gz.fai",
