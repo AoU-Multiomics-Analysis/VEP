@@ -50,6 +50,11 @@ This pipeline combines:
 - `dbnsfp_database_tbi`: Tabix index for dbNSFP database
 - `dbnsfp_fields`: Array of dbNSFP fields to annotate (e.g., ["SIFT_score", "Polyphen2_HDIV_score"])
 
+### VEP Cache
+- `vep_cache_tar_gz`: Compressed VEP cache file (.tar.gz format)
+  - The cache will be automatically decompressed during the workflow
+  - If a synonyms file is present in the cache, it will be automatically detected and used
+
 ### Other Parameters
 - `cohort_prefix`: Prefix for output files
 - `vep_assembly`: Genome assembly version (default: "GRCh38")
@@ -70,6 +75,7 @@ This pipeline combines:
   "VepWithLofteeAndDbNSFP.gerp_conservation_scores": "gs://my-bucket/loftee/gerp_conservation_scores.homo_sapiens.GRCh38.bw",
   "VepWithLofteeAndDbNSFP.dbnsfp_database": "gs://my-bucket/dbnsfp/dbNSFP4.3a_grch38.gz",
   "VepWithLofteeAndDbNSFP.dbnsfp_database_tbi": "gs://my-bucket/dbnsfp/dbNSFP4.3a_grch38.gz.tbi",
+  "VepWithLofteeAndDbNSFP.vep_cache_tar_gz": "gs://my-bucket/vep/homo_sapiens_vep_cache.tar.gz",
   "VepWithLofteeAndDbNSFP.dbnsfp_fields": ["SIFT_score", "SIFT_pred", "Polyphen2_HDIV_score", "Polyphen2_HDIV_pred", "MutationTaster_score", "MutationTaster_pred"],
   "VepWithLofteeAndDbNSFP.cohort_prefix": "my_cohort",
   "VepWithLofteeAndDbNSFP.vep_assembly": "GRCh38"
@@ -87,7 +93,8 @@ The VEP docker image must have:
 - VEP installed and configured
 - LOFTEE plugin installed at `/opt/vep/.vep/Plugins/`
 - dbNSFP plugin support (typically included with VEP)
-- VEP cache at `/opt/vep/.vep/`
+
+Note: The VEP cache is now provided as an input file (tar.gz) and will be decompressed at runtime. However, LOFTEE and dbNSFP plugins must still be installed in the Docker image as they are not part of the cache.
 
 ## Reference File Sources
 

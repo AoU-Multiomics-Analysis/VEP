@@ -15,6 +15,7 @@
   "VepWithLofteeAndDbNSFP.gerp_conservation_scores": "gs://my-bucket/loftee/gerp_conservation_scores.homo_sapiens.GRCh38.bw",
   "VepWithLofteeAndDbNSFP.dbnsfp_database": "gs://my-bucket/dbnsfp/dbNSFP4.3a_grch38.gz",
   "VepWithLofteeAndDbNSFP.dbnsfp_database_tbi": "gs://my-bucket/dbnsfp/dbNSFP4.3a_grch38.gz.tbi",
+  "VepWithLofteeAndDbNSFP.vep_cache_tar_gz": "gs://my-bucket/vep/homo_sapiens_vep_cache.tar.gz",
   "VepWithLofteeAndDbNSFP.dbnsfp_fields": [
     "SIFT_score",
     "SIFT_pred",
