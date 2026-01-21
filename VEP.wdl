@@ -273,8 +273,10 @@ task vepAnnotate {
         tar -xzf ~{vep_cache_tar_gz} -C vep_cache
         
         # Find the actual cache directory (it may be nested)
-        VEP_CACHE_DIR=$(find vep_cache -type d -name "homo_sapiens" | head -n 1 | xargs dirname)
-        if [ -z "$VEP_CACHE_DIR" ]; then
+        HOMO_SAPIENS_DIR=$(find vep_cache -type d -name "homo_sapiens" | head -n 1)
+        if [ -n "$HOMO_SAPIENS_DIR" ]; then
+            VEP_CACHE_DIR=$(dirname "$HOMO_SAPIENS_DIR")
+        else
             # If homo_sapiens directory not found, use the extracted directory
             VEP_CACHE_DIR="vep_cache"
         fi
@@ -282,7 +284,7 @@ task vepAnnotate {
         echo "Using VEP cache directory: $VEP_CACHE_DIR"
         
         # Look for synonyms file in the cache
-        SYNONYMS_FILE=$(find "$VEP_CACHE_DIR" -name "*.txt" -o -name "*synonyms*" | grep -i synonym | head -n 1 || echo "")
+        SYNONYMS_FILE=$(find "$VEP_CACHE_DIR" -type f \( -name "*synonym*" -o -name "*synonyms*" \) | head -n 1)
         
         # Move dbNSFP database files to current directory for easier access
         mv ~{dbnsfp_database} .
@@ -296,16 +298,10 @@ task vepAnnotate {
             dbnsfp_plugin="--plugin dbNSFP,$dbnsfp_basename,~{sep=',' dbnsfp_fields}"
         fi
         
-        # Build synonyms command if synonyms file found
-        synonyms_cmd=""
-        if [ -n "$SYNONYMS_FILE" ]; then
-            echo "Found synonyms file: $SYNONYMS_FILE"
-            synonyms_cmd="--synonyms $SYNONYMS_FILE"
-        fi
-
-        vep --vcf \
+        # Build VEP command with optional synonyms
+        vep_cmd="vep --vcf \
             --force_overwrite \
-            --dir "$VEP_CACHE_DIR" \
+            --dir \"$VEP_CACHE_DIR\" \
             --format vcf \
             --everything \
             --allele_number \
@@ -319,9 +315,21 @@ task vepAnnotate {
             --output_file ~{vep_annotated_vcf_name} \
             --compress_output bgzip \
             --plugin LoF,loftee_path:/opt/vep/.vep/Plugins/,human_ancestor_fa:~{human_ancestor_fa},gerp_score:~{gerp_conservation_scores} \
-            --dir_plugins /opt/vep/.vep/Plugins/ \
-            "${synonyms_cmd}" \
-            "${dbnsfp_plugin}"
+            --dir_plugins /opt/vep/.vep/Plugins/"
+        
+        # Add synonyms file if found
+        if [ -n "$SYNONYMS_FILE" ]; then
+            echo "Found synonyms file: $SYNONYMS_FILE"
+            vep_cmd="$vep_cmd --synonyms \"$SYNONYMS_FILE\""
+        fi
+        
+        # Add dbNSFP plugin if configured
+        if [ -n "$dbnsfp_plugin" ]; then
+            vep_cmd="$vep_cmd $dbnsfp_plugin"
+        fi
+        
+        # Execute VEP command
+        eval "$vep_cmd"
     >>>
 }
 
