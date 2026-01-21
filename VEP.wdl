@@ -233,7 +233,8 @@ task vepAnnotate {
     String vep_annotated_vcf_name = "~{prefix}.vep.loftee.dbnsfp.vcf.gz"
 
     Float input_size = size(vcf_file, "GB")
-    Float ref_size = size([top_level_fa, human_ancestor_fa, gerp_conservation_scores, dbnsfp_database, vep_cache_tar_gz], "GB")
+    Float cache_size = size(vep_cache_tar_gz, "GB")
+    Float other_ref_size = size([top_level_fa, human_ancestor_fa, gerp_conservation_scores, dbnsfp_database], "GB")
     Float base_disk_gb = 10.0
     Float base_mem_gb = 2.0
     Float input_mem_scale = 3.0
@@ -241,7 +242,7 @@ task vepAnnotate {
     
     RuntimeAttr runtime_default = object {
         mem_gb: base_mem_gb + input_size * input_mem_scale,
-        disk_gb: ceil(base_disk_gb + input_size * input_disk_scale + ref_size * 2.0),
+        disk_gb: ceil(base_disk_gb + input_size * input_disk_scale + other_ref_size * 2.0 + cache_size * 5.0),
         cpu_cores: 1,
         preemptible_tries: 3,
         max_retries: 1,
@@ -270,18 +271,25 @@ task vepAnnotate {
         # Decompress VEP cache
         echo "Decompressing VEP cache..."
         mkdir -p vep_cache
-        tar -xzf ~{vep_cache_tar_gz} -C vep_cache
+        tar -xzf ~{vep_cache_tar_gz} -C vep_cache --no-absolute-names
         
         # Find the actual cache directory (it may be nested)
         HOMO_SAPIENS_DIR=$(find vep_cache -type d -name "homo_sapiens" | head -n 1)
         if [ -n "$HOMO_SAPIENS_DIR" ]; then
             VEP_CACHE_DIR=$(dirname "$HOMO_SAPIENS_DIR")
+            echo "Using VEP cache directory: $VEP_CACHE_DIR"
         else
-            # If homo_sapiens directory not found, use the extracted directory
-            VEP_CACHE_DIR="vep_cache"
+            # If homo_sapiens directory not found, check if cache is directly in the top level
+            if [ -d "vep_cache/homo_sapiens" ]; then
+                VEP_CACHE_DIR="vep_cache"
+                echo "Using VEP cache directory: $VEP_CACHE_DIR"
+            else
+                echo "ERROR: Could not find homo_sapiens directory in VEP cache"
+                echo "Cache structure:"
+                ls -la vep_cache/
+                exit 1
+            fi
         fi
-        
-        echo "Using VEP cache directory: $VEP_CACHE_DIR"
         
         # Look for synonyms file in the cache
         SYNONYMS_FILE=$(find "$VEP_CACHE_DIR" -type f \( -name "*synonym*" -o -name "*synonyms*" \) | head -n 1)
@@ -298,10 +306,11 @@ task vepAnnotate {
             dbnsfp_plugin="--plugin dbNSFP,$dbnsfp_basename,~{sep=',' dbnsfp_fields}"
         fi
         
-        # Build VEP command with optional synonyms
-        vep_cmd="vep --vcf \
+        # Build VEP command arguments
+        # Note: dbnsfp_plugin variable intentionally unquoted on line below to allow word splitting of plugin arguments
+        vep --vcf \
             --force_overwrite \
-            --dir \"$VEP_CACHE_DIR\" \
+            --dir "$VEP_CACHE_DIR" \
             --format vcf \
             --everything \
             --allele_number \
@@ -315,21 +324,9 @@ task vepAnnotate {
             --output_file ~{vep_annotated_vcf_name} \
             --compress_output bgzip \
             --plugin LoF,loftee_path:/opt/vep/.vep/Plugins/,human_ancestor_fa:~{human_ancestor_fa},gerp_score:~{gerp_conservation_scores} \
-            --dir_plugins /opt/vep/.vep/Plugins/"
-        
-        # Add synonyms file if found
-        if [ -n "$SYNONYMS_FILE" ]; then
-            echo "Found synonyms file: $SYNONYMS_FILE"
-            vep_cmd="$vep_cmd --synonyms \"$SYNONYMS_FILE\""
-        fi
-        
-        # Add dbNSFP plugin if configured
-        if [ -n "$dbnsfp_plugin" ]; then
-            vep_cmd="$vep_cmd $dbnsfp_plugin"
-        fi
-        
-        # Execute VEP command
-        eval "$vep_cmd"
+            --dir_plugins /opt/vep/.vep/Plugins/ \
+            ${SYNONYMS_FILE:+--synonyms "$SYNONYMS_FILE"} \
+            $dbnsfp_plugin
     >>>
 }
 
