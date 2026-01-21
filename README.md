@@ -94,7 +94,7 @@ The VEP docker image must have:
 - LOFTEE plugin installed at `/opt/vep/.vep/Plugins/`
 - dbNSFP plugin support (typically included with VEP)
 
-Note: The VEP cache is now provided as an input file (tar.gz) and will be decompressed at runtime.
+Note: The VEP cache is now provided as an input file (tar.gz) and will be decompressed at runtime. However, LOFTEE and dbNSFP plugins must still be installed in the Docker image as they are not part of the cache.
 
 ## Reference File Sources
 

@@ -274,21 +274,15 @@ task vepAnnotate {
         tar -xzf ~{vep_cache_tar_gz} -C vep_cache --no-absolute-names
         
         # Find the actual cache directory (it may be nested)
-        HOMO_SAPIENS_DIR=$(find vep_cache -type d -name "homo_sapiens" | head -n 1)
+        HOMO_SAPIENS_DIR=$(find vep_cache -type d -name "homo_sapiens" -print -quit)
         if [ -n "$HOMO_SAPIENS_DIR" ]; then
             VEP_CACHE_DIR=$(dirname "$HOMO_SAPIENS_DIR")
             echo "Using VEP cache directory: $VEP_CACHE_DIR"
         else
-            # If homo_sapiens directory not found, check if cache is directly in the top level
-            if [ -d "vep_cache/homo_sapiens" ]; then
-                VEP_CACHE_DIR="vep_cache"
-                echo "Using VEP cache directory: $VEP_CACHE_DIR"
-            else
-                echo "ERROR: Could not find homo_sapiens directory in VEP cache"
-                echo "Cache structure:"
-                ls -la vep_cache/
-                exit 1
-            fi
+            echo "ERROR: Could not find homo_sapiens directory in VEP cache"
+            echo "Cache structure:"
+            ls -la vep_cache/
+            exit 1
         fi
         
         # Look for synonyms file in the cache
@@ -307,6 +301,7 @@ task vepAnnotate {
         fi
         
         # Build VEP command arguments
+        # Note: LOFTEE plugins are installed in Docker image at /opt/vep/.vep/Plugins/, not in the cache
         # Note: dbnsfp_plugin variable intentionally unquoted on line below to allow word splitting of plugin arguments
         vep --vcf \
             --force_overwrite \
